@@ -14,7 +14,7 @@ const escapeHtml = (value: unknown) =>
 const formatDate = (value: string) => {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) {
-    return value || 'Unavailable';
+    return value || 'Not reported';
   }
 
   return date.toLocaleString();
@@ -27,7 +27,7 @@ const keyValueGrid = (items: Array<[string, unknown]>) =>
 
 const table = (headers: string[], rows: unknown[][]) => {
   if (rows.length === 0) {
-    return '<p class="muted">No records found.</p>';
+    return '<p class="muted">No records reported.</p>';
   }
 
   return `<table><thead><tr>${headers.map((header) => `<th>${escapeHtml(header)}</th>`).join('')}</tr></thead><tbody>${rows
@@ -43,7 +43,7 @@ const eventsTable = (events: EventRecord[]) =>
 
 const warningCards = (warnings: TriageWarning[]) => {
   if (warnings.length === 0) {
-    return '<p class="muted">No warnings generated.</p>';
+    return '<p class="muted">No findings flagged.</p>';
   }
 
   return `<div class="warning-grid">${warnings
@@ -64,7 +64,7 @@ export const generateStandaloneHtmlReport = (report: EndpointTriageReport) => {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Endpoint Triage Report - ${escapeHtml(report.hostname)}</title>
+  <title>Endpoint Report - ${escapeHtml(report.hostname)}</title>
   <style>
     body { margin: 0; background: #020617; color: #e2e8f0; font-family: Segoe UI, Arial, sans-serif; }
     main { max-width: 1180px; margin: 0 auto; padding: 32px; }
@@ -98,10 +98,10 @@ export const generateStandaloneHtmlReport = (report: EndpointTriageReport) => {
     <div class="topline">User: ${escapeHtml(report.loggedInUser)} | Scan time: ${escapeHtml(formatDate(report.scanTime))} | Report ID: ${escapeHtml(report.reportId)}</div>
     <div class="score">Health Score: ${health.score} (${escapeHtml(health.label)})</div>
   </header>
-  ${section('Warnings', warningCards(warnings))}
+  ${section('Auto Review', warningCards(warnings))}
   ${section('Device Summary', keyValueGrid([
     ['Hostname', report.hostname],
-    ['Logged-in User', report.loggedInUser],
+    ['Logged-In User', report.loggedInUser],
     ['OS', `${report.os.name} ${report.os.version} build ${report.os.build}`],
     ['Architecture', report.os.architecture],
     ['Manufacturer', report.hardware.manufacturer],

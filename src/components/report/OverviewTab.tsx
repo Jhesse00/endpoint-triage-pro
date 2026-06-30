@@ -6,11 +6,18 @@ interface OverviewTabProps {
   report: EndpointTriageReport;
 }
 
-const formatDate = (value: string) =>
-  new Intl.DateTimeFormat(undefined, {
+const formatDate = (value: string) => {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return 'Not reported';
+  }
+
+  return new Intl.DateTimeFormat(undefined, {
     dateStyle: 'medium',
     timeStyle: 'short',
-  }).format(new Date(value));
+  }).format(date);
+};
 
 export function OverviewTab({ report }: OverviewTabProps) {
   return (
@@ -86,7 +93,7 @@ export function OverviewTab({ report }: OverviewTabProps) {
           <div>
             <p className="text-xs uppercase tracking-[0.18em] text-slate-500">CPU</p>
             <p className="mt-1 text-sm font-semibold text-slate-100">{report.performance.cpuName}</p>
-            <p className="mt-1 text-sm text-slate-400">Current load: {report.performance.cpuLoadPercent ?? 'Unavailable'}%</p>
+            <p className="mt-1 text-sm text-slate-400">Current load: {report.performance.cpuLoadPercent === null ? 'Not reported' : `${report.performance.cpuLoadPercent}%`}</p>
           </div>
           <div>
             <div className="flex justify-between text-sm">

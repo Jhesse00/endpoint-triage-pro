@@ -1,4 +1,5 @@
 import type { EventRecord, EndpointTriageReport } from '../../types/triage';
+import { EmptyState } from '../ui/EmptyState';
 import { Panel } from '../ui/Panel';
 import { StatusBadge } from '../ui/StatusBadge';
 
@@ -21,8 +22,9 @@ const formatDate = (value: string) =>
 function EventTable({ title, eyebrow, events }: EventTableProps) {
   return (
     <Panel title={title} eyebrow={eyebrow}>
-      <div className="space-y-3">
-        {events.map((event) => (
+      {events.length > 0 ? (
+        <div className="space-y-3">
+          {events.map((event) => (
           <article className="border border-slate-800 bg-slate-800/40 p-4" key={`${event.timeCreated}-${event.eventId}`}>
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -33,8 +35,11 @@ function EventTable({ title, eyebrow, events }: EventTableProps) {
             </div>
             <p className="mt-3 text-sm leading-6 text-slate-400">{event.message}</p>
           </article>
-        ))}
-      </div>
+          ))}
+        </div>
+      ) : (
+        <EmptyState description="No matching event records were returned for this scan." title="No events reported" />
+      )}
     </Panel>
   );
 }

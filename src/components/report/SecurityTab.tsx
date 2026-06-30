@@ -1,4 +1,5 @@
 import type { EndpointTriageReport } from '../../types/triage';
+import { EmptyState } from '../ui/EmptyState';
 import { Panel } from '../ui/Panel';
 import { StatusBadge } from '../ui/StatusBadge';
 
@@ -6,7 +7,12 @@ interface SecurityTabProps {
   report: EndpointTriageReport;
 }
 
-const enabledTone = (value: string) => (value.toLowerCase().includes('enabled') ? 'success' : 'critical');
+const enabledTone = (value: string) => {
+  const status = value.toLowerCase();
+  if (status.includes('enabled')) return 'success';
+  if (status.includes('unavailable') || status.includes('unknown')) return 'neutral';
+  return 'critical';
+};
 
 export function SecurityTab({ report }: SecurityTabProps) {
   return (
@@ -36,30 +42,38 @@ export function SecurityTab({ report }: SecurityTabProps) {
         </Panel>
 
         <Panel title="Firewall Profiles" eyebrow="Network Protection">
-          <div className="grid grid-cols-3 gap-4">
-            {report.security.firewallProfiles.map((profile) => (
-              <div className="border border-slate-800 bg-slate-800/50 p-4" key={profile.name}>
-                <p className="text-sm font-semibold text-slate-100">{profile.name}</p>
-                <div className="mt-3">
-                  <StatusBadge tone={profile.enabled ? 'success' : 'critical'}>{profile.enabled ? 'Enabled' : 'Disabled'}</StatusBadge>
+          {report.security.firewallProfiles.length > 0 ? (
+            <div className="grid grid-cols-3 gap-4">
+              {report.security.firewallProfiles.map((profile) => (
+                <div className="border border-slate-800 bg-slate-800/50 p-4" key={profile.name}>
+                  <p className="text-sm font-semibold text-slate-100">{profile.name}</p>
+                  <div className="mt-3">
+                    <StatusBadge tone={profile.enabled ? 'success' : 'critical'}>{profile.enabled ? 'Enabled' : 'Disabled'}</StatusBadge>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <EmptyState description="No firewall profile records were returned for this scan." title="No firewall profiles reported" />
+          )}
         </Panel>
       </div>
 
       <Panel title="Local Administrators" eyebrow="Privilege Review">
-        <div className="space-y-3">
-          {report.security.localAdmins.map((admin) => (
-            <div className="border border-slate-800 bg-slate-800/50 px-3 py-2 font-mono text-sm text-slate-300" key={admin}>
-              {admin}
-            </div>
-          ))}
-        </div>
+        {report.security.localAdmins.length > 0 ? (
+          <div className="space-y-3">
+            {report.security.localAdmins.map((admin) => (
+              <div className="border border-slate-800 bg-slate-800/50 px-3 py-2 font-mono text-sm text-slate-300" key={admin}>
+                {admin}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <EmptyState description="No local administrator records were returned for this scan." title="No administrators reported" />
+        )}
         {report.permissions.limitedFields.length > 0 && (
-          <div className="mt-5 border border-amber-400/30 bg-amber-400/10 p-3 text-sm text-amber-200">
-            Limited fields: {report.permissions.limitedFields.join(', ')}
+          <div className="mt-5 border border-amber-400/30 bg-amber-400/10 p-3 text-sm text-amber-200" title="Run as administrator to collect restricted Windows security details.">
+            Some fields were limited: {report.permissions.limitedFields.join(', ')}
           </div>
         )}
       </Panel>

@@ -64,7 +64,7 @@ const formatDate = (value: string) => {
   const date = new Date(value);
 
   if (Number.isNaN(date.getTime())) {
-    return 'Unavailable';
+    return 'Not reported';
   }
 
   return new Intl.DateTimeFormat(undefined, {
@@ -84,7 +84,7 @@ const getDiskFreeSummary = (report: EndpointTriageReport): { value: string; deta
   const drive = report.storage.drives.find((item) => item.name.toLowerCase().startsWith('c')) ?? report.storage.drives[0];
 
   if (!drive) {
-    return { value: 'Unavailable', detail: 'No local disk data returned', tone: 'neutral' as const };
+    return { value: 'Not reported', detail: 'No storage data returned', tone: 'neutral' as const };
   }
 
   const tone: NonNullable<SummaryCardProps['tone']> = drive.freeGB < 10 || drive.freePercent < 10 ? 'critical' : drive.freeGB < 25 || drive.freePercent < 20 ? 'warning' : 'success';
@@ -119,10 +119,21 @@ export function EndpointReport({
   onRunScan,
 }: EndpointReportProps) {
   const [activeTab, setActiveTab] = useState<ReportTab>('overview');
+  const [copyIdState, setCopyIdState] = useState<'idle' | 'copied' | 'failed'>('idle');
   const criticalCount = warnings.filter((warning) => warning.severity === 'critical').length;
   const diskFree = getDiskFreeSummary(report);
   const failedLogins = report.events.failedLoginsLast24h.length;
   const healthTone = getHealthTone(healthScore);
+
+  const copyReportId = async () => {
+    try {
+      await navigator.clipboard.writeText(report.reportId);
+      setCopyIdState('copied');
+      window.setTimeout(() => setCopyIdState('idle'), 1800);
+    } catch {
+      setCopyIdState('failed');
+    }
+  };
 
   return (
     <div className="space-y-5">
@@ -132,7 +143,10 @@ export function EndpointReport({
             <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-cyan-400">Endpoint Report</p>
             <h2 className="mt-2 truncate text-3xl font-bold tracking-tight text-slate-100">{report.hostname}</h2>
             <p className="mt-2 text-sm text-slate-400">
-              {report.hostname} · {report.loggedInUser} · {report.os.name}
+              {report.loggedInUser} · {report.os.name} {report.os.version} · Build {report.os.build}
+            </p>
+            <p className="mt-3 max-w-3xl truncate font-mono text-xs text-slate-500" title={`Report ID: ${report.reportId}`}>
+              Report ID: {report.reportId}
             </p>
             <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-slate-300">
               <StatusBadge tone={healthTone}>Status: {healthLabel}</StatusBadge>
@@ -140,39 +154,52 @@ export function EndpointReport({
               <StatusBadge tone="neutral">Generated: {formatDate(report.scanTime)}</StatusBadge>
             </div>
             {report.status === 'PermissionRequired' && (
-              <div className="mt-4 border border-amber-400/30 bg-amber-400/10 p-3 text-sm text-amber-100">
-                {report.message ?? 'Run as administrator for full results.'}
+              <div className="mt-4 border border-amber-400/30 bg-amber-400/10 p-3 text-sm text-amber-100" title="Some security and event data may require administrator permissions.">
+                <span className="font-semibold">Administrator access recommended.</span> {report.message ?? 'Run as administrator for full results.'}
               </div>
             )}
           </div>
 
-          <div className="flex w-[360px] shrink-0 flex-wrap justify-end gap-2">
-            <Button onClick={onRunScan} size="sm" variant="primary">
+          <div className="grid w-[380px] shrink-0 grid-cols-2 gap-2">
+            <Button className="w-full" onClick={onRunScan} size="sm" variant="primary">
               Run New Scan
             </Button>
-            <Button onClick={() => void onExportJson()} size="sm" variant="secondary">
+            <Button className="w-full" onClick={copyReportId} size="sm" variant="secondary">
+              Copy Report ID
+            </Button>
+            <Button className="w-full" onClick={() => void onExportJson()} size="sm" variant="secondary">
               Export JSON
             </Button>
-            <Button onClick={() => void onExportHtml()} size="sm" variant="secondary">
+            <Button className="w-full" onClick={() => void onExportHtml()} size="sm" variant="secondary">
               Export Report
             </Button>
-            <Button onClick={() => void onOpenJson()} size="sm" variant="ghost">
+            <Button className="w-full" onClick={() => void onOpenJson()} size="sm" variant="ghost">
               Open JSON
             </Button>
-            <Button onClick={() => void onOpenReportsFolder()} size="sm" variant="ghost">
+            <Button className="w-full" onClick={() => void onOpenReportsFolder()} size="sm" variant="ghost">
               Open Folder
             </Button>
             {exportStatus && (
-              <div className={`w-full border p-2 text-right text-xs ${exportStatus.type === 'success' ? 'border-emerald-400/30 bg-emerald-400/10 text-emerald-200' : 'border-red-400/30 bg-red-400/10 text-red-200'}`}>
+              <div className={`col-span-2 border p-2 text-right text-xs ${exportStatus.type === 'success' ? 'border-emerald-400/30 bg-emerald-400/10 text-emerald-200' : 'border-red-400/30 bg-red-400/10 text-red-200'}`} role="status">
                 {exportStatus.message}
+              </div>
+            )}
+            {copyIdState === 'copied' && (
+              <div className="col-span-2 border border-emerald-400/30 bg-emerald-400/10 p-2 text-right text-xs text-emerald-200" role="status">
+                Report ID copied.
+              </div>
+            )}
+            {copyIdState === 'failed' && (
+              <div className="col-span-2 border border-red-400/30 bg-red-400/10 p-2 text-right text-xs text-red-200" role="status">
+                Report ID could not be copied.
               </div>
             )}
           </div>
         </div>
 
-        <div className="mt-6 grid grid-cols-6 gap-3">
+        <div className="mt-6 grid grid-cols-3 gap-3 xl:grid-cols-6">
           <SummaryCard detail={healthLabel} label="Health Score" tone={healthTone} value={`${healthScore} / 100`} />
-          <SummaryCard detail="Auto-generated findings" label="Critical Warnings" tone={criticalCount > 0 ? 'critical' : 'success'} value={`${criticalCount}`} />
+          <SummaryCard detail="Warnings requiring attention" label="Critical Findings" tone={criticalCount > 0 ? 'critical' : 'success'} value={`${criticalCount}`} />
           <SummaryCard detail="Days since last boot" label="Uptime" tone={report.uptime.uptimeDays > 14 ? 'warning' : 'success'} value={`${report.uptime.uptimeDays}d`} />
           <SummaryCard detail={diskFree.detail} label="Disk Free" tone={diskFree.tone} value={diskFree.value} />
           <SummaryCard detail="Windows servicing state" label="Pending Reboot" tone={report.updates.pendingReboot ? 'warning' : 'success'} value={report.updates.pendingReboot ? 'Yes' : 'No'} />
@@ -214,7 +241,7 @@ export function EndpointReport({
           {activeTab === 'ticket-notes' && <TicketNotesTab onExportReport={onExportHtml} onOpenJson={onOpenJson} ticketNotes={ticketNotes} />}
         </div>
 
-        <Panel title="Warnings" eyebrow="Auto Review">
+        <Panel title="Auto Review" eyebrow="Warnings & Actions">
           {warnings.length > 0 ? (
             <div className="space-y-3">
               {warnings.map((warning) => (
@@ -222,7 +249,7 @@ export function EndpointReport({
               ))}
             </div>
           ) : (
-            <EmptyState description="The warning engine did not find immediate health warnings in this report." title="No warnings generated" />
+            <EmptyState description="This report does not contain immediate endpoint warnings." title="No findings flagged" />
           )}
         </Panel>
       </div>

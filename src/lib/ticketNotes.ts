@@ -14,7 +14,7 @@ const getApplicationCrashSummary = (report: EndpointTriageReport) => {
 
   const providers = Array.from(new Set(report.events.recentApplicationErrors.map((event) => event.providerName).filter(Boolean))).slice(0, 3);
   const source = providers.length > 0 ? providers.join(', ') : 'application event logs';
-  return `Recent application errors found from ${source}.`;
+  return `Recent application errors were recorded by ${source}.`;
 };
 
 const getFindings = (report: EndpointTriageReport) => {
@@ -62,7 +62,7 @@ const getRecommendedActions = (report: EndpointTriageReport, warnings: TriageWar
   }
 
   if (actions.length === 0) {
-    actions.push('No immediate remediation required from endpoint triage findings. Continue standard issue-specific troubleshooting.');
+    actions.push('No immediate endpoint remediation is required from triage findings. Continue issue-specific troubleshooting.');
   }
 
   return actions.slice(0, 5);

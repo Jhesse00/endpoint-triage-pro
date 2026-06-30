@@ -40,9 +40,9 @@ const statusLabel: Record<ScanStatus, string> = {
   idle: 'Ready',
   running: 'Collecting endpoint data',
   'building-report': 'Building report',
-  completed: 'Report Ready',
-  failed: 'Scan Failed',
-  cancelled: 'Scan Cancelled',
+  completed: 'Report ready',
+  failed: 'Scan failed',
+  cancelled: 'Scan cancelled',
 };
 
 const getProgressColor = (status: ScanStatus) => {
@@ -77,10 +77,10 @@ export function ScanProgress({ scanState, onBackHome, onCancel, onRetry, onViewR
     <div className="mx-auto max-w-5xl space-y-5">
       <div>
         <h2 className="text-xl font-semibold tracking-tight text-slate-100">Scan Progress</h2>
-        <p className="mt-1 text-sm text-slate-400">Running local Windows endpoint triage scan.</p>
+        <p className="mt-1 text-sm text-slate-400">Running a local Windows endpoint diagnostic scan.</p>
       </div>
 
-      <Panel className="bg-slate-900/95" title="PowerShell Collector" eyebrow="Local Endpoint Scan">
+      <Panel className="bg-slate-900/95" title="Local Collector" eyebrow="Endpoint Scan">
         <div className="grid grid-cols-[210px_1fr] gap-6">
           <div className="flex flex-col items-center justify-center border border-slate-800 bg-slate-950/70 p-5 text-center">
             <div
@@ -122,7 +122,7 @@ export function ScanProgress({ scanState, onBackHome, onCancel, onRetry, onViewR
 
             {isActive && (
               <div className="mt-5 flex items-center justify-between border border-slate-800 bg-slate-950/60 p-4">
-                <p className="text-sm text-slate-400">Final transition waits for a valid report from the Electron main process.</p>
+                <p className="text-sm text-slate-400">Report view opens automatically when the scan returns a valid report.</p>
                 <Button onClick={onCancel} size="sm" variant="danger">
                   Cancel Scan
                 </Button>
@@ -143,14 +143,14 @@ export function ScanProgress({ scanState, onBackHome, onCancel, onRetry, onViewR
 
             {hasFailed && (
               <div className="mt-5 border border-red-400/30 bg-red-400/10 p-4">
-                <p className="text-sm font-semibold text-red-200">PowerShell collector could not complete.</p>
-                <p className="mt-2 whitespace-pre-line text-sm leading-6 text-red-100/85">{scanState.error ?? 'No error details were returned.'}</p>
+                <p className="text-sm font-semibold text-red-200">The endpoint scan could not be completed.</p>
+                <p className="mt-2 whitespace-pre-line text-sm leading-6 text-red-100/85">{scanState.error ?? 'No additional details were returned.'}</p>
                 <div className="mt-4 flex flex-wrap gap-3">
                   <Button onClick={onRetry} size="sm" variant="primary">
                     Retry Scan
                   </Button>
                   <Button onClick={() => setShowRawOutput((current) => !current)} size="sm" variant="secondary">
-                    View Raw Output
+                    View Collector Output
                   </Button>
                   <Button onClick={onBackHome} size="sm" variant="ghost">
                     Back Home
@@ -209,9 +209,9 @@ export function ScanProgress({ scanState, onBackHome, onCancel, onRetry, onViewR
 
         {showRawOutput && (
           <div className="mt-5 border border-slate-800 bg-slate-950 p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Raw Collector Output</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Collector Output</p>
             <pre className="mt-3 max-h-72 overflow-auto whitespace-pre-wrap text-xs leading-5 text-slate-300">
-              {scanState.rawOutput?.trim() || 'No raw collector output was captured.'}
+              {scanState.rawOutput?.trim() || 'No collector output was captured.'}
             </pre>
           </div>
         )}

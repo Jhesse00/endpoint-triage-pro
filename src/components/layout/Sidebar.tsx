@@ -9,11 +9,11 @@ interface SidebarProps {
   scanIsActive: boolean;
 }
 
-const navItems: Array<{ id: AppView; label: string; detail: string }> = [
-  { id: 'home', label: 'Dashboard', detail: 'Summary and recent findings' },
-  { id: 'report', label: 'Current Report', detail: 'Open endpoint results' },
-  { id: 'history', label: 'Scan History', detail: 'Local saved reports' },
-  { id: 'settings', label: 'Settings', detail: 'Collector and storage' },
+const navItems: Array<{ id: AppView; label: string; detail: string; icon: string }> = [
+  { id: 'home', label: 'Dashboard', detail: 'Summary and recent findings', icon: 'D' },
+  { id: 'report', label: 'Current Report', detail: 'Endpoint health and notes', icon: 'R' },
+  { id: 'history', label: 'Scan History', detail: 'Saved local reports', icon: 'H' },
+  { id: 'settings', label: 'Settings', detail: 'Collector and storage', icon: 'S' },
 ];
 
 export function Sidebar({ activeView, onNavigate, onRunScan, scanIsActive }: SidebarProps) {
@@ -21,7 +21,7 @@ export function Sidebar({ activeView, onNavigate, onRunScan, scanIsActive }: Sid
     <aside className="flex h-screen w-72 shrink-0 flex-col border-r border-slate-800 bg-slate-950">
       <div className="border-b border-slate-800 px-5 py-5">
         <div className="flex items-center gap-3">
-          <div className="grid h-10 w-10 place-items-center rounded-sm border border-cyan-400/30 bg-cyan-400/10 text-xs font-black tracking-[0.16em] text-cyan-300">
+          <div className="grid h-10 w-10 place-items-center rounded-sm border border-cyan-400/30 bg-cyan-400/10 text-xs font-black tracking-[0.16em] text-cyan-200">
             ETP
           </div>
           <div>
@@ -47,8 +47,15 @@ export function Sidebar({ activeView, onNavigate, onRunScan, scanIsActive }: Sid
                 onClick={() => onNavigate(item.id)}
                 type="button"
               >
-                <span className="block text-sm font-semibold">{item.label}</span>
-                <span className="mt-1 block text-xs text-slate-500">{item.detail}</span>
+                <span className="flex items-center gap-3">
+                  <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-sm border text-[11px] font-bold ${active ? 'border-cyan-400/30 bg-cyan-400/10 text-cyan-200' : 'border-slate-800 bg-slate-900 text-slate-500'}`}>
+                    {item.icon}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-sm font-semibold">{item.label}</span>
+                    <span className="mt-1 block truncate text-xs text-slate-500">{item.detail}</span>
+                  </span>
+                </span>
               </button>
             );
           })}
@@ -57,7 +64,7 @@ export function Sidebar({ activeView, onNavigate, onRunScan, scanIsActive }: Sid
 
       <div className="border-t border-slate-800 p-4">
         <Button className="w-full" disabled={scanIsActive} onClick={onRunScan} size="sm" variant="primary">
-          {scanIsActive ? 'Scan Running' : 'Run New Scan'}
+          {scanIsActive ? 'Scan in Progress' : 'Run New Scan'}
         </Button>
 
         <div className="mt-4 space-y-2 border border-slate-800 bg-slate-900/50 p-3 text-xs">
@@ -76,7 +83,7 @@ export function Sidebar({ activeView, onNavigate, onRunScan, scanIsActive }: Sid
         </div>
 
         <p className="mt-3 text-xs leading-5 text-slate-500">
-          PowerShell collector runs locally through secure Electron IPC. Reports are stored locally only.
+          The PowerShell collector runs on this workstation. Reports stay local.
         </p>
       </div>
     </aside>

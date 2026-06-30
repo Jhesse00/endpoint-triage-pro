@@ -30,10 +30,10 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
     return (
       <main className="grid min-h-screen place-items-center bg-slate-950 p-8 text-slate-100">
         <section className="w-full max-w-2xl border border-red-400/30 bg-slate-900 p-6 shadow-panel">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-red-300">Startup Error</p>
-          <h1 className="mt-3 text-2xl font-bold text-slate-100">Endpoint Triage Pro could not render the dashboard.</h1>
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-red-300">Application Error</p>
+          <h1 className="mt-3 text-2xl font-bold text-slate-100">Endpoint Triage Pro could not load the dashboard.</h1>
           <p className="mt-3 text-sm leading-6 text-slate-400">
-            The app loaded, but the renderer hit an unexpected data or runtime error. Use Reload after rebuilding, or clear malformed local reports if this persists.
+            The app encountered an unexpected data or runtime issue. Reload the app, and remove malformed local reports if this continues.
           </p>
           <pre className="mt-5 max-h-56 overflow-auto border border-slate-800 bg-slate-950 p-4 text-xs leading-5 text-red-100">
             {this.state.error.message}
