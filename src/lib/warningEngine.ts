@@ -93,15 +93,15 @@ export const generateWarnings = (report: EndpointTriageReport): TriageWarning[] 
       id: 'recent-system-errors',
       title: 'Recent System Errors',
       severity: 'critical',
-      description: `${criticalSystemErrors.length} critical system event(s) were found in the recent system log sample.`,
-      recommendedAction: 'Review the system event details, check related services or drivers, and recheck after remediation.',
+      description: `${criticalSystemErrors.length} critical system event(s) were found in the recent system event log.`,
+      recommendedAction: 'Review the system event details, check related services or drivers, and verify the endpoint after remediation.',
     });
   } else if (report.events.recentSystemErrors.length > 0) {
     warnings.push({
       id: 'recent-system-errors',
       title: 'Recent System Errors',
       severity: 'warning',
-      description: `${report.events.recentSystemErrors.length} system error or warning event(s) were found in the recent system log sample.`,
+      description: `${report.events.recentSystemErrors.length} system error or warning event(s) were found in the recent system event log.`,
       recommendedAction: 'Review recurring providers and event IDs to determine whether they match the reported issue.',
     });
   }

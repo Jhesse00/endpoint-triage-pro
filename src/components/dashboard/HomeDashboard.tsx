@@ -27,13 +27,13 @@ export function HomeDashboard({ reports, warnings, averageHealthScore, averageHe
           <div className="grid grid-cols-[1fr_auto] gap-8">
             <div>
               <p className="max-w-2xl text-sm leading-6 text-slate-400">
-                Windows endpoint health dashboard and help desk diagnostic console. Scan results are rendered from local report data.
+                Windows endpoint diagnostics for help desk technicians. Run a local scan, review the findings, and prepare ticket-ready notes.
               </p>
               <div className="mt-6 flex items-center gap-3">
                 <Button onClick={onRunScan} variant="primary">
                   Run New Scan
                 </Button>
-                <StatusBadge tone="info">Reports stay on this machine</StatusBadge>
+                <StatusBadge tone="info">Local Reports Only</StatusBadge>
               </div>
             </div>
             <div className="grid min-w-64 grid-cols-2 gap-3">
@@ -75,14 +75,14 @@ export function HomeDashboard({ reports, warnings, averageHealthScore, averageHe
                   Run New Scan
                 </Button>
               }
-              description="No local reports are stored yet. Run a scan to create the first endpoint report on this machine."
-              title="No local reports"
+              description="Run a scan to create the first diagnostic report on this workstation."
+              title="No reports saved"
             />
           )}
         </Panel>
 
         <div className="space-y-6">
-          <Panel title="Common Warnings" eyebrow="Generated Findings">
+          <Panel title="Auto Review" eyebrow="Findings">
             {commonWarnings.length > 0 ? (
               <div className="space-y-3">
                 {commonWarnings.map((warning) => (
@@ -90,7 +90,7 @@ export function HomeDashboard({ reports, warnings, averageHealthScore, averageHe
                 ))}
               </div>
             ) : (
-              <EmptyState description="The current report set does not contain generated warnings." title="No common warnings" />
+              <EmptyState description="Saved reports do not currently show recurring endpoint warnings." title="No recurring findings" />
             )}
           </Panel>
 

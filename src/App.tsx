@@ -56,7 +56,7 @@ function getErrorMessage(error: unknown) {
     return error;
   }
 
-  return 'An unknown scan error occurred.';
+  return 'An unexpected scan error occurred.';
 }
 
 const requireRecord = (value: unknown, fieldName: string) => {
@@ -133,34 +133,34 @@ function getShellCopy(screen: Screen) {
   if (screen === 'scan') {
     return {
       title: 'Scan Progress',
-      subtitle: 'Running local Windows endpoint triage scan.',
+      subtitle: 'Collecting endpoint diagnostics from this workstation.',
     };
   }
 
   if (screen === 'report') {
     return {
       title: 'Endpoint Report',
-      subtitle: 'Current local diagnostic report and technician findings.',
+      subtitle: 'Health summary, findings, and ticket-ready notes.',
     };
   }
 
   if (screen === 'history') {
     return {
       title: 'Scan History',
-      subtitle: 'Local endpoint reports stored on this workstation.',
+      subtitle: 'Saved diagnostic reports on this workstation.',
     };
   }
 
   if (screen === 'settings') {
     return {
       title: 'Settings',
-      subtitle: 'Local collector and report storage configuration.',
+      subtitle: 'Collector status and local report storage.',
     };
   }
 
   return {
     title: 'Endpoint Triage Pro',
-    subtitle: 'Windows endpoint health dashboard and diagnostic console.',
+    subtitle: 'Windows endpoint diagnostics for help desk technicians.',
   };
 }
 
@@ -253,7 +253,7 @@ export default function App() {
           status: 'failed',
           currentStep: 'Report generation timed out',
           progress: Math.min(current.progress, 98),
-          error: 'Report generation timed out.\nThe collector finished, but the app did not receive a valid report.',
+          error: 'Report generation timed out.\nThe scan finished, but a valid report was not received.',
         };
       });
     }, 10000);
@@ -291,7 +291,7 @@ export default function App() {
 
     try {
       if (!window.endpointTriage?.runScan) {
-        throw new Error('Electron preload API is unavailable. Run the app through the Electron desktop runtime to start a local scan.');
+        throw new Error('The desktop scan service is unavailable. Restart Endpoint Triage Pro and try again.');
       }
 
       const result = await window.endpointTriage.runScan();
@@ -313,12 +313,12 @@ export default function App() {
       }
 
       if (!result.success) {
-        setFailedScan(result.error ?? 'PowerShell collector could not complete.', result.rawOutput);
+        setFailedScan(result.error ?? 'The endpoint scan could not be completed.', result.rawOutput);
         return;
       }
 
       if (!result.report) {
-        setFailedScan('The collector finished, but the app did not receive a valid report.', result.rawOutput);
+        setFailedScan('The scan finished, but a valid report was not received.', result.rawOutput);
         return;
       }
 
@@ -351,7 +351,7 @@ export default function App() {
     setScanState((current) => ({
       ...current,
       status: 'cancelled',
-      currentStep: 'Scan cancelled by user.',
+        currentStep: 'Scan cancelled',
       error: undefined,
     }));
     setScreen('home');
@@ -366,7 +366,7 @@ export default function App() {
   const runReportAction = async (action: () => Promise<void>, successMessage: string) => {
     try {
       if (!window.endpointTriage) {
-        throw new Error('Report export requires the Electron desktop runtime.');
+        throw new Error('Report actions are available in the desktop app.');
       }
 
       await action();
@@ -378,20 +378,20 @@ export default function App() {
 
   const requireSelectedReport = () => {
     if (!selectedReport) {
-      throw new Error('No endpoint report loaded.');
+      throw new Error('No endpoint report is open.');
     }
 
     return selectedReport;
   };
 
   const handleExportJson = () =>
-    runReportAction(() => window.endpointTriage!.exportJson(requireSelectedReport().reportId), 'JSON report exported to the local reports folder.');
+    runReportAction(() => window.endpointTriage!.exportJson(requireSelectedReport().reportId), 'JSON report saved to the reports folder.');
 
   const handleExportHtml = () =>
-    runReportAction(() => window.endpointTriage!.exportHtml(requireSelectedReport().reportId), 'HTML report exported to the local reports folder.');
+    runReportAction(() => window.endpointTriage!.exportHtml(requireSelectedReport().reportId), 'Report export saved to the reports folder.');
 
   const handleOpenJson = () =>
-    runReportAction(() => window.endpointTriage!.openJson(requireSelectedReport().reportId), 'JSON report opened in the system viewer.');
+    runReportAction(() => window.endpointTriage!.openJson(requireSelectedReport().reportId), 'Report JSON opened.');
 
   const handleOpenReportsFolder = () => runReportAction(() => window.endpointTriage!.openReportsFolder(), 'Reports folder opened.');
 
@@ -458,8 +458,8 @@ export default function App() {
               Run New Scan
             </Button>
           }
-          description="Run a new scan to generate a local diagnostic report."
-          title="No endpoint report loaded."
+          description="Run a new scan to generate a diagnostic report for this workstation."
+          title="No endpoint report loaded"
         />
       )}
 
@@ -474,8 +474,8 @@ export default function App() {
                   Run New Scan
                 </Button>
               }
-              description="Run a new scan to create the first local endpoint report."
-              title="No scan history yet"
+              description="Run a scan to save the first diagnostic report on this workstation."
+              title="No scan history"
             />
           )}
         </Panel>
@@ -484,7 +484,7 @@ export default function App() {
       {screen === 'settings' && (
         <div className="max-w-3xl space-y-5">
           <Panel title="Collector" eyebrow="Local Execution">
-            <p className="text-sm leading-6 text-slate-300">PowerShell collector runs locally through secure Electron IPC.</p>
+            <p className="text-sm leading-6 text-slate-300">The PowerShell collector runs on this workstation through the desktop app.</p>
             <p className="mt-2 text-sm leading-6 text-slate-400">Reports are stored locally only. No cloud uploads, accounts, telemetry, or external services are used.</p>
           </Panel>
           <Panel title="Storage" eyebrow="Reports">

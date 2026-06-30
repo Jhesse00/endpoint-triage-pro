@@ -1,4 +1,5 @@
 import type { EndpointTriageReport } from '../../types/triage';
+import { EmptyState } from '../ui/EmptyState';
 import { Panel } from '../ui/Panel';
 import { StatusBadge } from '../ui/StatusBadge';
 
@@ -20,19 +21,23 @@ export function PrintersTab({ report }: PrintersTabProps) {
       </Panel>
 
       <Panel title="Installed Printers" eyebrow="Devices">
-        <div className="grid grid-cols-2 gap-4">
-          {report.printers.installedPrinters.map((printer) => (
-            <article className="border border-slate-800 bg-slate-800/40 p-4" key={printer.name}>
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <h3 className="text-sm font-semibold text-slate-100">{printer.name}</h3>
-                  <p className="mt-1 text-xs text-slate-500">{printer.isDefault ? 'Default printer' : 'Available printer'}</p>
+        {report.printers.installedPrinters.length > 0 ? (
+          <div className="grid grid-cols-2 gap-4">
+            {report.printers.installedPrinters.map((printer) => (
+              <article className="border border-slate-800 bg-slate-800/40 p-4" key={printer.name}>
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-100">{printer.name}</h3>
+                    <p className="mt-1 text-xs text-slate-500">{printer.isDefault ? 'Default printer' : 'Available printer'}</p>
+                  </div>
+                  <StatusBadge tone={printer.status === 'Ready' ? 'success' : 'warning'}>{printer.status}</StatusBadge>
                 </div>
-                <StatusBadge tone={printer.status === 'Ready' ? 'success' : 'warning'}>{printer.status}</StatusBadge>
-              </div>
-            </article>
-          ))}
-        </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <EmptyState description="No installed printer records were returned for this scan." title="No printers reported" />
+        )}
       </Panel>
     </div>
   );

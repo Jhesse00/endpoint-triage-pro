@@ -22,7 +22,7 @@ export function WarningCard({ warning }: WarningCardProps) {
         <StatusBadge tone={toneBySeverity[warning.severity]}>{warning.severity}</StatusBadge>
       </div>
       <div className="mt-3">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Explanation</p>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Finding</p>
         <p className="mt-1 text-sm leading-6 text-slate-400">{warning.description}</p>
       </div>
       <div className="mt-4 border border-slate-800 bg-slate-950/50 p-3">

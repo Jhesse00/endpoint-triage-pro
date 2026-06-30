@@ -14,7 +14,7 @@ const getScoreTone = (score: number) => {
 
 export function HealthScoreCard({ score, label, criticalCount }: HealthScoreCardProps) {
   return (
-    <div className={`border p-5 ${getScoreTone(score)}`}>
+    <div className={`rounded-sm border p-5 ${getScoreTone(score)}`}>
       <p className="text-[11px] font-semibold uppercase tracking-[0.2em] opacity-80">Health Score</p>
       <div className="mt-4 flex items-end justify-between gap-4">
         <div>
@@ -23,7 +23,7 @@ export function HealthScoreCard({ score, label, criticalCount }: HealthScoreCard
         </div>
         <div className="text-right text-sm">
           <p className="font-semibold">{criticalCount}</p>
-          <p className="text-xs opacity-75">Critical warnings</p>
+          <p className="text-xs opacity-75">Critical findings</p>
         </div>
       </div>
       <div className="mt-5 h-2 border border-slate-700 bg-slate-950/50">

@@ -22,7 +22,7 @@ export function RecentReports({ reports, onOpenReport }: RecentReportsProps) {
             <th className="px-4 py-3 font-semibold">Endpoint</th>
             <th className="px-4 py-3 font-semibold">User</th>
             <th className="px-4 py-3 font-semibold">Scan Time</th>
-            <th className="px-4 py-3 font-semibold">Status</th>
+            <th className="px-4 py-3 font-semibold">Type</th>
             <th className="px-4 py-3 text-right font-semibold">Action</th>
           </tr>
         </thead>
@@ -33,11 +33,11 @@ export function RecentReports({ reports, onOpenReport }: RecentReportsProps) {
               <td className="px-4 py-4 text-slate-300">{report.loggedInUser}</td>
               <td className="px-4 py-4 text-slate-400">{formatDate(report.scanTime)}</td>
               <td className="px-4 py-4">
-                <StatusBadge tone={index === 0 ? 'warning' : 'success'}>{index === 0 ? 'Needs Review' : 'Archived'}</StatusBadge>
+                <StatusBadge tone={index === 0 ? 'info' : 'neutral'}>{index === 0 ? 'Latest' : 'Saved'}</StatusBadge>
               </td>
               <td className="px-4 py-4 text-right">
                 <Button onClick={() => onOpenReport(report)} size="sm" variant="ghost">
-                  Open
+                  Open Report
                 </Button>
               </td>
             </tr>
