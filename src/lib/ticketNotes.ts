@@ -1,84 +1,101 @@
 import type { EndpointTriageReport, TriageWarning } from '../types/triage';
 import { generateWarnings } from './warningEngine';
 
-const yesNo = (value: boolean) => (value ? 'Yes' : 'No');
-
-const getDiskStatus = (report: EndpointTriageReport) => {
-  const lowDrives = report.storage.drives.filter((drive) => drive.freeGB < 10 || drive.freePercent < 10);
-  if (lowDrives.length === 0) {
-    return 'No low disk space detected';
-  }
-
-  return lowDrives.map((drive) => `${drive.name} low space, ${drive.freeGB.toFixed(1)} GB free (${drive.freePercent.toFixed(1)}%)`).join('; ');
-};
-
-const getPrinterStatus = (report: EndpointTriageReport) => {
-  const defaultPrinter = report.printers.installedPrinters.find((printer) => printer.isDefault);
-  if (!defaultPrinter) {
-    return `Spooler ${report.printers.spoolerStatus.toLowerCase()}, no default printer found`;
-  }
-
-  return `Spooler ${report.printers.spoolerStatus.toLowerCase()}, default printer ${defaultPrinter.name} ${defaultPrinter.status.toLowerCase()}`;
-};
+const getPrimaryDrive = (report: EndpointTriageReport) =>
+  report.storage.drives.find((drive) => drive.name.toLowerCase().startsWith('c')) ?? report.storage.drives[0];
 
 const getMappedDriveIssueCount = (report: EndpointTriageReport) =>
   report.mappedDrives.filter((drive) => drive.status.toLowerCase().includes('disconnected')).length;
 
-const getRecentErrorCount = (report: EndpointTriageReport) => report.events.recentSystemErrors.length + report.events.recentApplicationErrors.length;
-
-const getRecommendedActions = (warnings: TriageWarning[]) => {
-  const actions = warnings.map((warning) => warning.recommendedAction);
-  const uniqueActions = Array.from(new Set(actions));
-
-  if (uniqueActions.length >= 3) {
-    return uniqueActions.slice(0, 3);
+const getApplicationCrashSummary = (report: EndpointTriageReport) => {
+  if (report.events.recentApplicationErrors.length === 0) {
+    return 'No recent application crashes found.';
   }
 
-  return [
-    ...uniqueActions,
-    'Restart the endpoint if updates, policy refresh, or resource pressure may be contributing to the issue.',
-    'Re-run endpoint triage after remediation to confirm the health score and warnings improve.',
-    'Escalate unresolved security, storage, or recurring event log findings to the appropriate support queue.',
-  ].slice(0, 3);
+  const providers = Array.from(new Set(report.events.recentApplicationErrors.map((event) => event.providerName).filter(Boolean))).slice(0, 3);
+  const source = providers.length > 0 ? providers.join(', ') : 'application event logs';
+  return `Recent application errors found from ${source}.`;
 };
 
-const getFinalFindingsSummary = (warnings: TriageWarning[]) => {
-  if (warnings.length === 0) {
-    return 'no immediate critical warnings';
+const getFindings = (report: EndpointTriageReport) => {
+  const drive = getPrimaryDrive(report);
+  const mappedDriveIssueCount = getMappedDriveIssueCount(report);
+  const findings = [
+    `Device has been online for ${report.uptime.uptimeDays} days.`,
+    drive ? `${drive.name} drive has ${drive.freeGB.toFixed(1)} GB free.` : 'Disk free space was not returned by the collector.',
+    report.updates.pendingReboot ? 'Pending reboot detected.' : 'No pending reboot detected.',
+    getApplicationCrashSummary(report),
+    mappedDriveIssueCount > 0 ? `${mappedDriveIssueCount} mapped drive${mappedDriveIssueCount === 1 ? ' is' : 's are'} disconnected.` : 'No disconnected mapped drives found.',
+  ];
+
+  if (report.events.failedLoginsLast24h.length > 0) {
+    findings.push(`${report.events.failedLoginsLast24h.length} failed login event(s) found in the last 24 hours.`);
   }
 
-  return warnings.slice(0, 5).map((warning) => warning.title.toLowerCase()).join(', ');
+  return findings;
+};
+
+const getRecommendedActions = (report: EndpointTriageReport, warnings: TriageWarning[]) => {
+  const drive = getPrimaryDrive(report);
+  const actions: string[] = [];
+
+  if (report.updates.pendingReboot || report.uptime.uptimeDays > 14) {
+    actions.push('Restart the device to clear pending update state and refresh services.');
+  }
+
+  if (drive && (drive.freeGB < 10 || drive.freePercent < 10)) {
+    actions.push(`Free disk space on ${drive.name} drive.`);
+  }
+
+  if (report.events.recentApplicationErrors.length > 0) {
+    actions.push('Retest the affected application after reboot or repair.');
+  }
+
+  if (getMappedDriveIssueCount(report) > 0) {
+    actions.push('Verify mapped drive access and confirm VPN or domain connectivity.');
+  }
+
+  for (const warning of warnings) {
+    if (!actions.includes(warning.recommendedAction)) {
+      actions.push(warning.recommendedAction);
+    }
+  }
+
+  if (actions.length === 0) {
+    actions.push('No immediate remediation required from endpoint triage findings. Continue standard issue-specific troubleshooting.');
+  }
+
+  return actions.slice(0, 5);
+};
+
+const getTechnicianSummary = (findings: string[]) => {
+  const relevantFindings = findings
+    .filter((finding) => !finding.startsWith('No pending') && !finding.startsWith('No recent') && !finding.startsWith('No disconnected'))
+    .map((finding) => finding.replace(/\.$/, '').toLowerCase());
+
+  if (relevantFindings.length === 0) {
+    return 'Endpoint triage completed. No immediate endpoint health blockers were detected. Continue issue-specific verification with the user.';
+  }
+
+  return `Endpoint triage completed. Findings indicate ${relevantFindings.join(', ')}. Recommended remediation and verification steps documented above.`;
 };
 
 export const generateTicketNotes = (report: EndpointTriageReport, warnings = generateWarnings(report)) => {
-  const recentErrorCount = getRecentErrorCount(report);
-  const failedLoginCount = report.events.failedLoginsLast24h.length;
-  const mappedDriveIssueCount = getMappedDriveIssueCount(report);
-  const recommendedActions = getRecommendedActions(warnings);
-  const finalFindings = getFinalFindingsSummary(warnings);
+  const findings = getFindings(report);
+  const recommendedActions = getRecommendedActions(report, warnings);
 
   return `Issue:
-Endpoint triage scan performed for reported device issue.
+Endpoint triage scan performed for reported workstation issue.
 
 Findings:
-- Device: ${report.hostname}
-- User: ${report.loggedInUser}
-- Uptime: ${report.uptime.uptimeDays} days
-- Disk status: ${getDiskStatus(report)}
-- Pending reboot: ${yesNo(report.updates.pendingReboot)}
-- Recent errors: ${recentErrorCount} found
-- Failed logins: ${failedLoginCount} found
-- Mapped drive issues: ${mappedDriveIssueCount} found
-- Printer status: ${getPrinterStatus(report)}
+${findings.map((finding) => `- ${finding}`).join('\n')}
 
 Recommended Actions:
 ${recommendedActions.map((action) => `- ${action}`).join('\n')}
 
-Verification Steps:
-- Confirm user can reproduce or no longer reproduce the issue.
-- Confirm affected app/service works normally.
-- Confirm no immediate recurring errors appear.
+Verification:
+Confirm the user can complete their workflow without errors.
 
-Final Ticket Note:
-Performed endpoint triage on ${report.hostname} for ${report.loggedInUser}. Findings included ${finalFindings}. Recommended follow-up actions were documented above and should be verified with the user after remediation.`;
+Technician Note:
+${getTechnicianSummary(findings)}`;
 };

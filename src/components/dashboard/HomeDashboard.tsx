@@ -43,13 +43,25 @@ export function HomeDashboard({ reports, warnings, averageHealthScore, averageHe
               </div>
               <div className="border border-slate-800 bg-slate-800/50 p-4">
                 <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Avg Score</p>
-                <p className="mt-3 text-3xl font-bold text-cyan-300">{averageHealthScore}</p>
+                <p className="mt-3 text-3xl font-bold text-cyan-300">{reports.length > 0 ? averageHealthScore : 'N/A'}</p>
               </div>
             </div>
           </div>
         </Panel>
 
-        <HealthScoreCard criticalCount={criticalCount} label={averageHealthLabel} score={averageHealthScore} />
+        {reports.length > 0 ? (
+          <HealthScoreCard criticalCount={criticalCount} label={averageHealthLabel} score={averageHealthScore} />
+        ) : (
+          <Panel title="Collector Ready" eyebrow="Local Scan">
+            <p className="text-sm leading-6 text-slate-300">No endpoint report is loaded yet.</p>
+            <p className="mt-2 text-sm leading-6 text-slate-400">Run a new scan to generate a local diagnostic report.</p>
+            <div className="mt-5">
+              <Button onClick={onRunScan} size="sm" variant="primary">
+                Run New Scan
+              </Button>
+            </div>
+          </Panel>
+        )}
       </section>
 
       <section className="grid grid-cols-[1fr_380px] gap-6">

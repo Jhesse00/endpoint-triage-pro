@@ -12,15 +12,21 @@ const toneBySeverity = {
 } as const;
 
 export function WarningCard({ warning }: WarningCardProps) {
+  const accentClass =
+    warning.severity === 'critical' ? 'border-l-red-400' : warning.severity === 'warning' ? 'border-l-amber-400' : 'border-l-cyan-400';
+
   return (
-    <article className="border border-slate-800 bg-slate-800/40 p-4">
+    <article className={`border border-l-4 border-slate-800 bg-slate-900/70 p-4 ${accentClass}`}>
       <div className="flex items-start justify-between gap-4">
         <h3 className="text-sm font-semibold text-slate-100">{warning.title}</h3>
         <StatusBadge tone={toneBySeverity[warning.severity]}>{warning.severity}</StatusBadge>
       </div>
-      <p className="mt-3 text-sm leading-6 text-slate-400">{warning.description}</p>
-      <div className="mt-4 border-l-2 border-cyan-400/50 pl-3">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-cyan-300">Recommended Action</p>
+      <div className="mt-3">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Explanation</p>
+        <p className="mt-1 text-sm leading-6 text-slate-400">{warning.description}</p>
+      </div>
+      <div className="mt-4 border border-slate-800 bg-slate-950/50 p-3">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Recommended Action</p>
         <p className="mt-1 text-sm leading-6 text-slate-300">{warning.recommendedAction}</p>
       </div>
     </article>
