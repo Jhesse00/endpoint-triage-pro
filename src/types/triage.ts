@@ -64,6 +64,24 @@ export interface EndpointTriageReport {
   };
 }
 
+export interface RunScanResult {
+  success: boolean;
+  report?: EndpointTriageReport;
+  rawOutput?: string;
+  error?: string;
+}
+
+export type ScanStatus = 'idle' | 'running' | 'building-report' | 'completed' | 'failed' | 'cancelled';
+
+export interface ScanState {
+  status: ScanStatus;
+  currentStep: string;
+  progress: number;
+  error?: string;
+  rawOutput?: string;
+  report?: EndpointTriageReport;
+}
+
 export interface NetworkAdapter {
   name: string;
   status: string;

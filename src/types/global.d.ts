@@ -1,12 +1,14 @@
-import type { EndpointTriageReport } from './triage';
+import type { EndpointTriageReport, RunScanResult } from './triage';
 
 declare global {
   interface Window {
     endpointTriage?: {
-      runScan: () => Promise<EndpointTriageReport>;
+      runScan: () => Promise<RunScanResult>;
+      cancelScan: () => Promise<void>;
       getReports: () => Promise<EndpointTriageReport[]>;
       exportJson: (reportId: string) => Promise<void>;
       exportHtml: (reportId: string) => Promise<void>;
+      openJson: (reportId: string) => Promise<void>;
       openReportsFolder: () => Promise<void>;
     };
   }

@@ -1,25 +1,42 @@
 import { app, ipcMain, shell } from 'electron';
-import { spawn } from 'node:child_process';
+import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
 import { access, mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { generateStandaloneHtmlReport } from './reportExport';
 
 const RUN_SCAN_CHANNEL = 'endpointTriage:runScan';
+const CANCEL_SCAN_CHANNEL = 'endpointTriage:cancelScan';
 const GET_REPORTS_CHANNEL = 'endpointTriage:getReports';
 const EXPORT_JSON_CHANNEL = 'endpointTriage:exportJson';
 const EXPORT_HTML_CHANNEL = 'endpointTriage:exportHtml';
+const OPEN_JSON_CHANNEL = 'endpointTriage:openJson';
 const OPEN_REPORTS_FOLDER_CHANNEL = 'endpointTriage:openReportsFolder';
 
 const SCAN_TIMEOUT_MS = 180000;
 
 type JsonRecord = Record<string, unknown>;
 
+interface RunScanResult {
+  success: boolean;
+  report?: JsonRecord;
+  rawOutput?: string;
+  error?: string;
+}
+
+interface CollectorResult {
+  report: JsonRecord;
+  rawOutput: string;
+}
+
 class EndpointTriageError extends Error {
-  constructor(message: string) {
+  constructor(message: string, readonly rawOutput?: string) {
     super(message);
     this.name = 'EndpointTriageError';
   }
 }
+
+let activeCollectorProcess: ChildProcessWithoutNullStreams | null = null;
+let activeScanCancelled = false;
 
 const getProjectRoot = () => {
   if (app.isPackaged) {
@@ -112,16 +129,44 @@ const getFriendlyPowerShellFailure = (stderr: string, exitCode: number | null) =
   return `PowerShell collector failed with exit code ${exitCode ?? 'unknown'}.`;
 };
 
-const parseCollectorJson = (stdout: string) => {
+const getRawOutput = (stdout: string, stderr: string) => {
+  const sections = [];
+  const trimmedStdout = stdout.trim();
+  const trimmedStderr = stderr.trim();
+
+  if (trimmedStdout) {
+    sections.push(trimmedStdout);
+  }
+
+  if (trimmedStderr) {
+    sections.push(`STDERR:\n${trimmedStderr}`);
+  }
+
+  return sections.join('\n\n');
+};
+
+const getErrorMessage = (error: unknown) => {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  if (typeof error === 'string' && error.trim().length > 0) {
+    return error;
+  }
+
+  return 'An unknown endpoint scan error occurred.';
+};
+
+const parseCollectorJson = (stdout: string, rawOutput: string) => {
   const output = stdout.trim();
   if (!output) {
-    throw new EndpointTriageError('PowerShell collector returned an empty report.');
+    throw new EndpointTriageError('PowerShell collector returned an empty report.', rawOutput);
   }
 
   try {
     return JSON.parse(output) as JsonRecord;
   } catch {
-    throw new EndpointTriageError('PowerShell collector returned invalid JSON.');
+    throw new EndpointTriageError('PowerShell collector returned invalid JSON.', rawOutput);
   }
 };
 
@@ -268,8 +313,22 @@ const exportHtmlReport = async (reportId: string) => {
   await writeFile(path.join(getExportsFolderPath(), `${getExportBaseName(report)}.html`), generateStandaloneHtmlReport(report), 'utf8');
 };
 
+const openJsonReport = async (reportId: string) => {
+  await getStoredReportById(reportId);
+  const result = await shell.openPath(getStoredReportPath(reportId));
+
+  if (result) {
+    throw new EndpointTriageError(`Unable to open JSON report: ${result}`);
+  }
+};
+
 const runCollectorWithCommand = (command: string, scriptPath: string) =>
-  new Promise<JsonRecord>((resolve, reject) => {
+  new Promise<CollectorResult>((resolve, reject) => {
+    if (activeScanCancelled) {
+      reject(new EndpointTriageError('Scan cancelled by user.'));
+      return;
+    }
+
     const child = spawn(
       command,
       ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', scriptPath],
@@ -278,19 +337,33 @@ const runCollectorWithCommand = (command: string, scriptPath: string) =>
         windowsHide: true,
       },
     );
+    activeCollectorProcess = child;
 
     let stdout = '';
     let stderr = '';
     let settled = false;
+    let timeout: NodeJS.Timeout;
 
-    const timeout = setTimeout(() => {
+    const cleanup = () => {
+      clearTimeout(timeout);
+      if (activeCollectorProcess === child) {
+        activeCollectorProcess = null;
+      }
+    };
+
+    const rejectWith = (error: EndpointTriageError) => {
+      settled = true;
+      cleanup();
+      reject(error);
+    };
+
+    timeout = setTimeout(() => {
       if (settled) {
         return;
       }
 
-      settled = true;
       child.kill();
-      reject(new EndpointTriageError('Endpoint scan timed out before the collector returned results.'));
+      rejectWith(new EndpointTriageError('Endpoint scan timed out before the collector returned results.', getRawOutput(stdout, stderr)));
     }, SCAN_TIMEOUT_MS);
 
     child.stdout.setEncoding('utf8');
@@ -309,9 +382,7 @@ const runCollectorWithCommand = (command: string, scriptPath: string) =>
         return;
       }
 
-      settled = true;
-      clearTimeout(timeout);
-      reject(new EndpointTriageError(getFriendlyProcessError(error, command)));
+      rejectWith(new EndpointTriageError(getFriendlyProcessError(error, command), getRawOutput(stdout, stderr)));
     });
 
     child.on('close', (exitCode) => {
@@ -319,18 +390,30 @@ const runCollectorWithCommand = (command: string, scriptPath: string) =>
         return;
       }
 
-      settled = true;
-      clearTimeout(timeout);
+      const rawOutput = getRawOutput(stdout, stderr);
+
+      if (activeScanCancelled) {
+        rejectWith(new EndpointTriageError('Scan cancelled by user.', rawOutput));
+        return;
+      }
 
       if (!stdout.trim()) {
-        reject(new EndpointTriageError(getFriendlyPowerShellFailure(stderr, exitCode)));
+        rejectWith(new EndpointTriageError(getFriendlyPowerShellFailure(stderr, exitCode), rawOutput));
         return;
       }
 
       try {
-        resolve(validateReport(parseCollectorJson(stdout)));
+        const report = validateReport(parseCollectorJson(stdout, rawOutput));
+        settled = true;
+        cleanup();
+        resolve({ report, rawOutput: stdout.trim() });
       } catch (error) {
-        reject(error);
+        if (error instanceof EndpointTriageError) {
+          rejectWith(error.rawOutput ? error : new EndpointTriageError(error.message, rawOutput));
+          return;
+        }
+
+        rejectWith(new EndpointTriageError(getErrorMessage(error), rawOutput));
       }
     });
   });
@@ -343,6 +426,10 @@ const runCollector = async () => {
   const errors: string[] = [];
 
   for (const command of candidates) {
+    if (activeScanCancelled) {
+      throw new EndpointTriageError('Scan cancelled by user.');
+    }
+
     try {
       return await runCollectorWithCommand(command, scriptPath);
     } catch (error) {
@@ -373,10 +460,33 @@ const registerHandler = (channel: string, handler: Parameters<typeof ipcMain.han
 };
 
 export const registerIpcHandlers = () => {
-  registerHandler(RUN_SCAN_CHANNEL, async () => {
-    const report = await runCollector();
-    await saveReport(report);
-    return report;
+  registerHandler(RUN_SCAN_CHANNEL, async (): Promise<RunScanResult> => {
+    activeScanCancelled = false;
+
+    try {
+      const result = await runCollector();
+
+      if (activeScanCancelled) {
+        return { success: false, error: 'Scan cancelled by user.', rawOutput: result.rawOutput };
+      }
+
+      await saveReport(result.report);
+      return { success: true, report: result.report, rawOutput: result.rawOutput };
+    } catch (error) {
+      const rawOutput = error instanceof EndpointTriageError ? error.rawOutput : undefined;
+      return { success: false, error: getErrorMessage(error), rawOutput };
+    } finally {
+      activeScanCancelled = false;
+      activeCollectorProcess = null;
+    }
+  });
+
+  registerHandler(CANCEL_SCAN_CHANNEL, async () => {
+    activeScanCancelled = true;
+
+    if (activeCollectorProcess && !activeCollectorProcess.killed) {
+      activeCollectorProcess.kill();
+    }
   });
 
   registerHandler(GET_REPORTS_CHANNEL, async () => getStoredReports());
@@ -387,6 +497,10 @@ export const registerIpcHandlers = () => {
 
   registerHandler(EXPORT_HTML_CHANNEL, async (_event, reportId: unknown) => {
     await exportHtmlReport(requireReportId(reportId));
+  });
+
+  registerHandler(OPEN_JSON_CHANNEL, async (_event, reportId: unknown) => {
+    await openJsonReport(requireReportId(reportId));
   });
 
   registerHandler(OPEN_REPORTS_FOLDER_CHANNEL, async () => {

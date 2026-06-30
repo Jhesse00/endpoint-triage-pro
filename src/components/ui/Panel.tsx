@@ -10,7 +10,7 @@ interface PanelProps {
 
 export function Panel({ children, title, eyebrow, action, className = '' }: PanelProps) {
   return (
-    <section className={`border border-slate-800 bg-slate-900 shadow-panel ${className}`}>
+    <section className={`rounded-sm border border-slate-800 bg-slate-900 shadow-panel ${className}`}>
       {(title || eyebrow || action) && (
         <div className="flex items-start justify-between gap-4 border-b border-slate-800 px-5 py-4">
           <div>

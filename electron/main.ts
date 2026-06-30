@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, Menu } from 'electron';
 import path from 'node:path';
 import { registerIpcHandlers } from './ipcHandlers';
 
@@ -6,10 +6,10 @@ let mainWindow: BrowserWindow | null = null;
 
 const createWindow = () => {
   mainWindow = new BrowserWindow({
-    width: 1360,
-    height: 860,
-    minWidth: 1120,
-    minHeight: 720,
+    width: 1440,
+    height: 900,
+    minWidth: 1200,
+    minHeight: 760,
     title: 'Endpoint Triage Pro',
     backgroundColor: '#020617',
     show: false,
@@ -34,6 +34,7 @@ const createWindow = () => {
 };
 
 app.whenReady().then(() => {
+  Menu.setApplicationMenu(null);
   registerIpcHandlers();
   createWindow();
 
