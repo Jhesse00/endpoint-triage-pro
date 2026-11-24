@@ -8,7 +8,7 @@ One-click Windows endpoint triage for help desk tickets. A PowerShell collector 
 
 **[Download for Windows (v0.1.0)](https://github.com/Jhesse00/endpoint-triage-pro/releases/latest)** · [Release notes and SHA-256 checksums](https://github.com/Jhesse00/endpoint-triage-pro/releases/tag/v0.1.0)
 
-TODO(evidence): Capture dashboard, security report, ticket notes, and exported HTML screenshots on a sanitized lab VM. No screenshots included until verified for identifying data.
+Screenshots are not included. Add screenshots only after capturing them on a sanitized lab VM and checking them for identifying data.
 
 ## What it collects
 
