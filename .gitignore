@@ -1,10 +1,7 @@
 node_modules/
 dist/
 dist-electron/
-release/**
-!release/
-!release/*.exe
-!release/*.blockmap
+release/
 reports/**
 !reports/
 !reports/.gitkeep
