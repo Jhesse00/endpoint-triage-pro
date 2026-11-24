@@ -17,7 +17,7 @@ export function RecentReports({ reports, onOpenReport }: RecentReportsProps) {
   return (
     <div className="overflow-hidden border border-slate-800">
       <table className="w-full border-collapse text-left text-sm">
-        <thead className="bg-slate-800/70 text-xs uppercase tracking-[0.16em] text-slate-400">
+        <thead className="bg-slate-800/70 text-xs text-slate-400">
           <tr>
             <th className="px-4 py-3 font-semibold">Endpoint</th>
             <th className="px-4 py-3 font-semibold">User</th>

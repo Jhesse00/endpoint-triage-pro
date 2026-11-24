@@ -9,7 +9,6 @@ interface EventsTabProps {
 
 interface EventTableProps {
   title: string;
-  eyebrow: string;
   events: EventRecord[];
 }
 
@@ -19,9 +18,9 @@ const formatDate = (value: string) =>
     timeStyle: 'medium',
   }).format(new Date(value));
 
-function EventTable({ title, eyebrow, events }: EventTableProps) {
+function EventTable({ title, events }: EventTableProps) {
   return (
-    <Panel title={title} eyebrow={eyebrow}>
+    <Panel title={title}>
       {events.length > 0 ? (
         <div className="space-y-3">
           {events.map((event) => (
@@ -29,7 +28,7 @@ function EventTable({ title, eyebrow, events }: EventTableProps) {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-sm font-semibold text-slate-100">{event.providerName}</p>
-                <p className="mt-1 font-mono text-xs text-slate-500">{formatDate(event.timeCreated)} · Event ID {event.eventId}</p>
+                <p className="mt-1 font-mono text-xs text-slate-400">{formatDate(event.timeCreated)} · Event ID {event.eventId}</p>
               </div>
               <StatusBadge tone={event.levelDisplayName === 'Error' ? 'critical' : 'warning'}>{event.levelDisplayName}</StatusBadge>
             </div>
@@ -47,9 +46,9 @@ function EventTable({ title, eyebrow, events }: EventTableProps) {
 export function EventsTab({ report }: EventsTabProps) {
   return (
     <div className="space-y-6">
-      <EventTable eyebrow="Security" events={report.events.failedLoginsLast24h} title="Failed Logins Last 24 Hours" />
-      <EventTable eyebrow="System" events={report.events.recentSystemErrors} title="Recent System Errors" />
-      <EventTable eyebrow="Application" events={report.events.recentApplicationErrors} title="Recent Application Errors" />
+      <EventTable events={report.events.failedLoginsLast24h} title="Failed Logins Last 24 Hours" />
+      <EventTable events={report.events.recentSystemErrors} title="Recent System Errors" />
+      <EventTable events={report.events.recentApplicationErrors} title="Recent Application Errors" />
     </div>
   );
 }

@@ -18,12 +18,12 @@ export function SecurityTab({ report }: SecurityTabProps) {
   return (
     <div className="grid grid-cols-[1fr_360px] gap-6">
       <div className="space-y-6">
-        <Panel title="Endpoint Protection" eyebrow="Security State">
+        <Panel title="Endpoint Protection">
           <div className="grid grid-cols-2 gap-4">
             <div className="border border-slate-800 bg-slate-800/50 p-4">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.18em] text-slate-500">BitLocker</p>
+                  <p className="text-xs text-slate-400">BitLocker</p>
                   <p className="mt-2 text-sm text-slate-300">Operating system volume protection</p>
                 </div>
                 <StatusBadge tone={enabledTone(report.security.bitlockerStatus)}>{report.security.bitlockerStatus}</StatusBadge>
@@ -32,7 +32,7 @@ export function SecurityTab({ report }: SecurityTabProps) {
             <div className="border border-slate-800 bg-slate-800/50 p-4">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Defender</p>
+                  <p className="text-xs text-slate-400">Defender</p>
                   <p className="mt-2 text-sm text-slate-300">Microsoft Defender Antivirus</p>
                 </div>
                 <StatusBadge tone={enabledTone(report.security.defenderStatus)}>{report.security.defenderStatus}</StatusBadge>
@@ -41,7 +41,7 @@ export function SecurityTab({ report }: SecurityTabProps) {
           </div>
         </Panel>
 
-        <Panel title="Firewall Profiles" eyebrow="Network Protection">
+        <Panel title="Firewall Profiles">
           {report.security.firewallProfiles.length > 0 ? (
             <div className="grid grid-cols-3 gap-4">
               {report.security.firewallProfiles.map((profile) => (
@@ -59,7 +59,7 @@ export function SecurityTab({ report }: SecurityTabProps) {
         </Panel>
       </div>
 
-      <Panel title="Local Administrators" eyebrow="Privilege Review">
+      <Panel title="Local Administrators">
         {report.security.localAdmins.length > 0 ? (
           <div className="space-y-3">
             {report.security.localAdmins.map((admin) => (

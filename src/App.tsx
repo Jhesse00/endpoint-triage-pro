@@ -159,8 +159,8 @@ function getShellCopy(screen: Screen) {
   }
 
   return {
-    title: 'Endpoint Triage Pro',
-    subtitle: 'Windows endpoint diagnostics for help desk technicians.',
+    title: 'Dashboard',
+    subtitle: 'Saved reports and recurring findings on this PC.',
   };
 }
 
@@ -464,7 +464,7 @@ export default function App() {
       )}
 
       {screen === 'history' && (
-        <Panel title="Scan History" eyebrow="Local Reports">
+        <Panel title="Scan History">
           {reports.length > 0 ? (
             <RecentReports reports={reports} onOpenReport={handleOpenReport} />
           ) : (
@@ -483,19 +483,15 @@ export default function App() {
 
       {screen === 'settings' && (
         <div className="max-w-3xl space-y-5">
-          <Panel title="Collector" eyebrow="Local Execution">
+          <Panel title="Collector">
             <p className="text-sm leading-6 text-slate-300">The PowerShell collector runs on this workstation through the desktop app.</p>
             <p className="mt-2 text-sm leading-6 text-slate-400">Reports are stored locally only. No cloud uploads, accounts, telemetry, or external services are used.</p>
           </Panel>
-          <Panel title="Storage" eyebrow="Reports">
-            <div className="grid grid-cols-2 gap-4 text-sm">
+          <Panel title="Storage">
+            <div className="text-sm">
               <div className="border border-slate-800 bg-slate-800/50 p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Storage Mode</p>
+                <p className="text-xs text-slate-400">Storage Mode</p>
                 <p className="mt-2 font-semibold text-slate-100">Local Only</p>
-              </div>
-              <div className="border border-slate-800 bg-slate-800/50 p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Collector Status</p>
-                <p className="mt-2 font-semibold text-emerald-300">Ready</p>
               </div>
             </div>
           </Panel>

@@ -40,7 +40,6 @@ export function TicketNotesTab({ ticketNotes, onExportReport, onOpenJson }: Tick
         </div>
       }
       title="Help Desk Ticket Notes"
-      eyebrow="Ticket-Ready Summary"
     >
       <p className="mb-4 text-sm leading-6 text-slate-400">
         Review the notes, copy them into the help desk ticket, and attach the exported report when needed.

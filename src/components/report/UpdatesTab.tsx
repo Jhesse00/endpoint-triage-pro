@@ -10,7 +10,7 @@ interface UpdatesTabProps {
 export function UpdatesTab({ report }: UpdatesTabProps) {
   return (
     <div className="space-y-6">
-      <Panel title="Windows Update Status" eyebrow="Servicing">
+      <Panel title="Windows Update Status">
         <div className="flex items-center justify-between border border-slate-800 bg-slate-800/50 p-5">
           <div>
             <p className="text-sm font-semibold text-slate-100">Pending Reboot</p>
@@ -20,10 +20,10 @@ export function UpdatesTab({ report }: UpdatesTabProps) {
         </div>
       </Panel>
 
-      <Panel title="Recent Hotfixes" eyebrow="Patch History">
+      <Panel title="Recent Hotfixes">
         {report.updates.lastHotfixes.length > 0 ? (
           <table className="w-full border-collapse text-left text-sm">
-            <thead className="bg-slate-800/70 text-xs uppercase tracking-[0.16em] text-slate-400">
+            <thead className="bg-slate-800/70 text-xs text-slate-400">
               <tr>
                 <th className="px-4 py-3 font-semibold">Hotfix</th>
                 <th className="px-4 py-3 font-semibold">Installed On</th>
