@@ -22,51 +22,51 @@ const formatDate = (value: string) => {
 export function OverviewTab({ report }: OverviewTabProps) {
   return (
     <div className="grid grid-cols-2 gap-6">
-      <Panel title="Device Summary" eyebrow="Endpoint">
+      <Panel title="Device Summary">
         <dl className="grid grid-cols-2 gap-4 text-sm">
           <div>
-            <dt className="text-xs uppercase tracking-[0.18em] text-slate-500">Hostname</dt>
+            <dt className="text-xs text-slate-400">Hostname</dt>
             <dd className="mt-1 font-semibold text-slate-100">{report.hostname}</dd>
           </div>
           <div>
-            <dt className="text-xs uppercase tracking-[0.18em] text-slate-500">Logged-In User</dt>
+            <dt className="text-xs text-slate-400">Logged-In User</dt>
             <dd className="mt-1 font-semibold text-slate-100">{report.loggedInUser}</dd>
           </div>
           <div>
-            <dt className="text-xs uppercase tracking-[0.18em] text-slate-500">OS</dt>
+            <dt className="text-xs text-slate-400">OS</dt>
             <dd className="mt-1 text-slate-300">{report.os.name}</dd>
           </div>
           <div>
-            <dt className="text-xs uppercase tracking-[0.18em] text-slate-500">Version</dt>
+            <dt className="text-xs text-slate-400">Version</dt>
             <dd className="mt-1 text-slate-300">{report.os.version} build {report.os.build}</dd>
           </div>
           <div>
-            <dt className="text-xs uppercase tracking-[0.18em] text-slate-500">Architecture</dt>
+            <dt className="text-xs text-slate-400">Architecture</dt>
             <dd className="mt-1 text-slate-300">{report.os.architecture}</dd>
           </div>
           <div>
-            <dt className="text-xs uppercase tracking-[0.18em] text-slate-500">Scan Time</dt>
+            <dt className="text-xs text-slate-400">Scan Time</dt>
             <dd className="mt-1 text-slate-300">{formatDate(report.scanTime)}</dd>
           </div>
         </dl>
       </Panel>
 
-      <Panel title="Hardware" eyebrow="Inventory">
+      <Panel title="Hardware">
         <dl className="grid grid-cols-2 gap-4 text-sm">
           <div>
-            <dt className="text-xs uppercase tracking-[0.18em] text-slate-500">Manufacturer</dt>
+            <dt className="text-xs text-slate-400">Manufacturer</dt>
             <dd className="mt-1 text-slate-300">{report.hardware.manufacturer}</dd>
           </div>
           <div>
-            <dt className="text-xs uppercase tracking-[0.18em] text-slate-500">Model</dt>
+            <dt className="text-xs text-slate-400">Model</dt>
             <dd className="mt-1 text-slate-300">{report.hardware.model}</dd>
           </div>
           <div>
-            <dt className="text-xs uppercase tracking-[0.18em] text-slate-500">Serial Number</dt>
+            <dt className="text-xs text-slate-400">Serial Number</dt>
             <dd className="mt-1 font-mono text-slate-300">{report.hardware.serialNumber}</dd>
           </div>
           <div>
-            <dt className="text-xs uppercase tracking-[0.18em] text-slate-500">Permissions</dt>
+            <dt className="text-xs text-slate-400">Permissions</dt>
             <dd className="mt-1">
               <StatusBadge tone={report.permissions.isAdmin ? 'success' : 'warning'}>{report.permissions.isAdmin ? 'Admin' : 'Standard User'}</StatusBadge>
             </dd>
@@ -74,11 +74,11 @@ export function OverviewTab({ report }: OverviewTabProps) {
         </dl>
       </Panel>
 
-      <Panel title="Uptime" eyebrow="Session Health">
+      <Panel title="Uptime">
         <div className="grid grid-cols-[180px_1fr] gap-6">
           <div className="border border-amber-400/30 bg-amber-400/10 p-5 text-amber-200">
             <p className="text-5xl font-black">{report.uptime.uptimeDays}</p>
-            <p className="mt-2 text-xs font-semibold uppercase tracking-[0.18em]">Days Uptime</p>
+            <p className="mt-2 text-xs font-semibold">Days Uptime</p>
           </div>
           <div>
             <p className="text-sm text-slate-400">Last boot time</p>
@@ -88,10 +88,10 @@ export function OverviewTab({ report }: OverviewTabProps) {
         </div>
       </Panel>
 
-      <Panel title="Performance" eyebrow="Live Metrics">
+      <Panel title="Performance">
         <div className="space-y-5">
           <div>
-            <p className="text-xs uppercase tracking-[0.18em] text-slate-500">CPU</p>
+            <p className="text-xs text-slate-400">CPU</p>
             <p className="mt-1 text-sm font-semibold text-slate-100">{report.performance.cpuName}</p>
             <p className="mt-1 text-sm text-slate-400">Current load: {report.performance.cpuLoadPercent === null ? 'Not reported' : `${report.performance.cpuLoadPercent}%`}</p>
           </div>
@@ -103,7 +103,7 @@ export function OverviewTab({ report }: OverviewTabProps) {
             <div className="mt-2 h-3 border border-slate-700 bg-slate-950">
               <div className="h-full bg-cyan-400" style={{ width: `${report.performance.ramUsagePercent}%` }} />
             </div>
-            <p className="mt-2 text-xs text-slate-500">{report.performance.ramUsagePercent}% used</p>
+            <p className="mt-2 text-xs text-slate-400">{report.performance.ramUsagePercent}% used</p>
           </div>
         </div>
       </Panel>

@@ -8,10 +8,10 @@ interface AppsTabProps {
 
 export function AppsTab({ report }: AppsTabProps) {
   return (
-    <Panel title="Installed Applications" eyebrow="Software Inventory">
+    <Panel title="Installed Applications">
       {report.installedApps.length > 0 ? (
         <table className="w-full border-collapse text-left text-sm">
-          <thead className="bg-slate-800/70 text-xs uppercase tracking-[0.16em] text-slate-400">
+          <thead className="bg-slate-800/70 text-xs text-slate-400">
             <tr>
               <th className="px-4 py-3 font-semibold">Name</th>
               <th className="px-4 py-3 font-semibold">Version</th>

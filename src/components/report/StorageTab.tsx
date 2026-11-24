@@ -15,7 +15,7 @@ const getDriveTone = (freePercent: number, freeGB: number) => {
 
 export function StorageTab({ report }: StorageTabProps) {
   return (
-    <Panel title="Storage Health" eyebrow="Disk Space">
+    <Panel title="Storage Health">
       {report.storage.drives.length > 0 ? (
         <div className="space-y-4">
           {report.storage.drives.map((drive) => {
