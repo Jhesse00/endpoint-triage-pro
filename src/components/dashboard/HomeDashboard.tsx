@@ -2,7 +2,6 @@ import type { EndpointTriageReport, TriageWarning } from '../../types/triage';
 import { Button } from '../ui/Button';
 import { EmptyState } from '../ui/EmptyState';
 import { Panel } from '../ui/Panel';
-import { StatusBadge } from '../ui/StatusBadge';
 import { HealthScoreCard } from './HealthScoreCard';
 import { RecentReports } from './RecentReports';
 import { WarningCard } from './WarningCard';
@@ -21,86 +20,45 @@ export function HomeDashboard({ reports, warnings, averageHealthScore, averageHe
   const commonWarnings = warnings.slice(0, 4);
 
   return (
-    <div className="space-y-6">
-      <section className="grid grid-cols-[1fr_320px] gap-6">
-        <Panel className="bg-slate-900/95" title="Endpoint Triage Pro" eyebrow="Dashboard">
-          <div className="grid grid-cols-[1fr_auto] gap-8">
-            <div>
-              <p className="max-w-2xl text-sm leading-6 text-slate-400">
-                Windows endpoint diagnostics for help desk technicians. Run a local scan, review the findings, and prepare ticket-ready notes.
-              </p>
-              <div className="mt-6 flex items-center gap-3">
-                <Button onClick={onRunScan} variant="primary">
-                  Run New Scan
-                </Button>
-                <StatusBadge tone="info">Local Reports Only</StatusBadge>
-              </div>
-            </div>
-            <div className="grid min-w-64 grid-cols-2 gap-3">
-              <div className="border border-slate-800 bg-slate-800/50 p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Total Scans</p>
-                <p className="mt-3 text-3xl font-bold text-slate-100">{reports.length}</p>
-              </div>
-              <div className="border border-slate-800 bg-slate-800/50 p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Avg Score</p>
-                <p className="mt-3 text-3xl font-bold text-cyan-300">{reports.length > 0 ? averageHealthScore : 'N/A'}</p>
-              </div>
-            </div>
-          </div>
-        </Panel>
-
+    <div className="grid grid-cols-[1fr_380px] gap-6">
+      <Panel title="Recent reports">
         {reports.length > 0 ? (
-          <HealthScoreCard criticalCount={criticalCount} label={averageHealthLabel} score={averageHealthScore} />
+          <RecentReports reports={reports} onOpenReport={onOpenReport} />
         ) : (
-          <Panel title="Collector Ready" eyebrow="Local Scan">
-            <p className="text-sm leading-6 text-slate-300">No endpoint report is loaded yet.</p>
-            <p className="mt-2 text-sm leading-6 text-slate-400">Run a new scan to generate a local diagnostic report.</p>
-            <div className="mt-5">
-              <Button onClick={onRunScan} size="sm" variant="primary">
+          <EmptyState
+            action={
+              <Button onClick={onRunScan} variant="primary">
                 Run New Scan
               </Button>
-            </div>
-          </Panel>
+            }
+            description="No scan has been run on this PC yet. Run a scan to collect system, network, storage, security and event log data into a local report."
+            title="No reports saved"
+          />
         )}
-      </section>
+      </Panel>
 
-      <section className="grid grid-cols-[1fr_380px] gap-6">
-        <Panel title="Recent Reports" eyebrow="Local History">
-          {reports.length > 0 ? (
-            <RecentReports reports={reports} onOpenReport={onOpenReport} />
+      <div className="space-y-6">
+        {reports.length > 0 && <HealthScoreCard criticalCount={criticalCount} label={averageHealthLabel} score={averageHealthScore} />}
+
+        <Panel title="Recurring findings">
+          {commonWarnings.length > 0 ? (
+            <div className="space-y-3">
+              {commonWarnings.map((warning) => (
+                <WarningCard key={warning.id} warning={warning} />
+              ))}
+            </div>
           ) : (
-            <EmptyState
-              action={
-                <Button onClick={onRunScan} variant="primary">
-                  Run New Scan
-                </Button>
-              }
-              description="Run a scan to create the first diagnostic report on this workstation."
-              title="No reports saved"
-            />
+            <p className="text-sm leading-6 text-slate-300">
+              {reports.length > 0 ? 'Saved reports show no recurring warnings.' : 'Findings appear here after the first scan.'}
+            </p>
           )}
         </Panel>
 
-        <div className="space-y-6">
-          <Panel title="Auto Review" eyebrow="Findings">
-            {commonWarnings.length > 0 ? (
-              <div className="space-y-3">
-                {commonWarnings.map((warning) => (
-                  <WarningCard key={warning.id} warning={warning} />
-                ))}
-              </div>
-            ) : (
-              <EmptyState description="Saved reports do not currently show recurring endpoint warnings." title="No recurring findings" />
-            )}
-          </Panel>
-
-          <Panel title="Privacy Notice" eyebrow="Local Collection">
-            <p className="text-sm leading-6 text-slate-300">Endpoint Triage Pro collects local device diagnostic data only.</p>
-            <p className="mt-2 text-sm leading-6 text-slate-400">Reports are stored locally on this machine.</p>
-            <p className="mt-2 text-sm leading-6 text-slate-400">No passwords, files, browser history, or personal documents are collected.</p>
-          </Panel>
-        </div>
-      </section>
+        <Panel title="Data collected">
+          <p className="text-sm leading-6 text-slate-300">Device diagnostics only. Reports are saved on this PC and are not uploaded.</p>
+          <p className="mt-2 text-sm leading-6 text-slate-400">No passwords, files, browser history or personal documents are collected.</p>
+        </Panel>
+      </div>
     </div>
   );
 }

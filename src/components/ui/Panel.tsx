@@ -3,19 +3,17 @@ import type { ReactNode } from 'react';
 interface PanelProps {
   children: ReactNode;
   title?: string;
-  eyebrow?: string;
   action?: ReactNode;
   className?: string;
 }
 
-export function Panel({ children, title, eyebrow, action, className = '' }: PanelProps) {
+export function Panel({ children, title, action, className = '' }: PanelProps) {
   return (
-    <section className={`rounded-sm border border-slate-800 bg-slate-900 shadow-panel ${className}`}>
-      {(title || eyebrow || action) && (
+    <section className={`rounded-sm border border-slate-800 bg-slate-900 ${className}`}>
+      {(title || action) && (
         <div className="flex items-start justify-between gap-4 border-b border-slate-800 px-5 py-4">
           <div>
-            {eyebrow && <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-cyan-400">{eyebrow}</p>}
-            {title && <h2 className="mt-1 text-base font-semibold text-slate-100">{title}</h2>}
+            {title && <h2 className="text-base font-semibold text-slate-100">{title}</h2>}
           </div>
           {action}
         </div>

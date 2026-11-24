@@ -4,7 +4,11 @@
 
 Endpoint Triage Pro is a Windows desktop app for help desk triage. A PowerShell collector gathers network, storage, security, update, event log, printer, and mapped-drive data from the local machine. The Electron app scores machine health, lists warnings, drafts ticket notes, and exports HTML and JSON reports.
 
-Screenshots: pending UI update.
+## Screenshots
+
+| Dashboard (empty state) | Settings and local storage |
+|---|---|
+| ![Dashboard empty state](screenshots/dashboard-empty.png) | ![Settings and local storage](screenshots/settings-local-storage.png) |
 
 ## Features
 

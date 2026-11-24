@@ -97,10 +97,10 @@ const getDiskFreeSummary = (report: EndpointTriageReport): { value: string; deta
 
 function SummaryCard({ label, value, detail, tone = 'neutral' }: SummaryCardProps) {
   return (
-    <div className="border border-slate-800 bg-slate-900 p-4">
-      <p className="text-xs uppercase tracking-[0.18em] text-slate-500">{label}</p>
-      <p className={`mt-2 text-2xl font-bold tracking-tight ${toneClasses[tone]}`}>{value}</p>
-      {detail && <p className="mt-1 truncate text-xs text-slate-500">{detail}</p>}
+    <div className="border border-slate-800 p-3">
+      <p className="text-xs text-slate-400">{label}</p>
+      <p className={`mt-1 text-2xl font-semibold ${toneClasses[tone]}`}>{value}</p>
+      {detail && <p className="mt-1 truncate text-xs text-slate-400">{detail}</p>}
     </div>
   );
 }
@@ -140,22 +140,21 @@ export function EndpointReport({
       <Panel className="bg-slate-900/95">
         <div className="flex items-start justify-between gap-6">
           <div className="min-w-0">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-cyan-400">Endpoint Report</p>
-            <h2 className="mt-2 truncate text-3xl font-bold tracking-tight text-slate-100">{report.hostname}</h2>
+            <h2 className="break-all text-2xl font-semibold text-slate-100">{report.hostname}</h2>
             <p className="mt-2 text-sm text-slate-400">
               {report.loggedInUser} · {report.os.name} {report.os.version} · Build {report.os.build}
             </p>
-            <p className="mt-3 max-w-3xl truncate font-mono text-xs text-slate-500" title={`Report ID: ${report.reportId}`}>
+            <p className="mt-3 max-w-3xl truncate font-mono text-xs text-slate-400" title={`Report ID: ${report.reportId}`}>
               Report ID: {report.reportId}
             </p>
-            <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-slate-300">
-              <StatusBadge tone={healthTone}>Status: {healthLabel}</StatusBadge>
-              <StatusBadge tone={healthTone}>Health Score: {healthScore} / 100</StatusBadge>
-              <StatusBadge tone="neutral">Generated: {formatDate(report.scanTime)}</StatusBadge>
-            </div>
+            <p className="mt-1 text-xs text-slate-400">Scanned {formatDate(report.scanTime)}</p>
             {report.status === 'PermissionRequired' && (
-              <div className="mt-4 border border-amber-400/30 bg-amber-400/10 p-3 text-sm text-amber-100" title="Some security and event data may require administrator permissions.">
-                <span className="font-semibold">Administrator access recommended.</span> {report.message ?? 'Run as administrator for full results.'}
+              <div className="mt-4 border-l-2 border-amber-400 pl-3 text-sm text-slate-300" role="note">
+                <p className="font-semibold text-amber-200">Scanned without administrator rights</p>
+                <p className="mt-1">
+                  {report.permissions.limitedFields.length > 0 ? `Not collected: ${report.permissions.limitedFields.join(', ')}. ` : 'Some security and event checks were limited. '}
+                  To include them, close the app, right-click it, choose Run as administrator, then run a new scan.
+                </p>
               </div>
             )}
           </div>
@@ -199,7 +198,7 @@ export function EndpointReport({
 
         <div className="mt-6 grid grid-cols-3 gap-3 xl:grid-cols-6">
           <SummaryCard detail={healthLabel} label="Health Score" tone={healthTone} value={`${healthScore} / 100`} />
-          <SummaryCard detail="Warnings requiring attention" label="Critical Findings" tone={criticalCount > 0 ? 'critical' : 'success'} value={`${criticalCount}`} />
+          <SummaryCard detail="Need action" label="Critical" tone={criticalCount > 0 ? 'critical' : 'success'} value={`${criticalCount}`} />
           <SummaryCard detail="Days since last boot" label="Uptime" tone={report.uptime.uptimeDays > 14 ? 'warning' : 'success'} value={`${report.uptime.uptimeDays}d`} />
           <SummaryCard detail={diskFree.detail} label="Disk Free" tone={diskFree.tone} value={diskFree.value} />
           <SummaryCard detail="Windows servicing state" label="Pending Reboot" tone={report.updates.pendingReboot ? 'warning' : 'success'} value={report.updates.pendingReboot ? 'Yes' : 'No'} />
@@ -209,18 +208,18 @@ export function EndpointReport({
 
       <div className="grid grid-cols-[minmax(0,1fr)_350px] gap-5">
         <div className="min-w-0 space-y-5">
-          <div className="flex overflow-x-auto border border-slate-800 bg-slate-900 p-1">
+          <div aria-label="Report sections" className="flex flex-wrap gap-1 border-b border-slate-800" role="tablist">
             {tabs.map((tab) => {
               const active = tab.id === activeTab;
               return (
                 <button
-                  className={`whitespace-nowrap rounded-sm border px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] transition ${
-                    active
-                      ? 'border-cyan-400/30 bg-cyan-400/10 text-cyan-200'
-                      : 'border-transparent text-slate-400 hover:bg-slate-800 hover:text-slate-100'
+                  aria-selected={active}
+                  className={`-mb-px whitespace-nowrap border-b-2 px-3 py-2 text-sm transition-colors ${
+                    active ? 'border-cyan-400 font-semibold text-slate-100' : 'border-transparent text-slate-300 hover:text-slate-100'
                   }`}
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
+                  role="tab"
                   type="button"
                 >
                   {tab.label}
@@ -241,7 +240,7 @@ export function EndpointReport({
           {activeTab === 'ticket-notes' && <TicketNotesTab onExportReport={onExportHtml} onOpenJson={onOpenJson} ticketNotes={ticketNotes} />}
         </div>
 
-        <Panel title="Auto Review" eyebrow="Warnings & Actions">
+        <Panel title={`Findings (${warnings.length})`}>
           {warnings.length > 0 ? (
             <div className="space-y-3">
               {warnings.map((warning) => (
@@ -249,7 +248,7 @@ export function EndpointReport({
               ))}
             </div>
           ) : (
-            <EmptyState description="This report does not contain immediate endpoint warnings." title="No findings flagged" />
+            <EmptyState description="All checks that ran came back within normal limits. Nothing needs action on this PC right now." title="No problems found" />
           )}
         </Panel>
       </div>

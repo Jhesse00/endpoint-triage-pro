@@ -9,7 +9,7 @@ interface DrivesTabProps {
 
 export function DrivesTab({ report }: DrivesTabProps) {
   return (
-    <Panel title="Mapped Drives" eyebrow="Network Shares">
+    <Panel title="Mapped Drives">
       {report.mappedDrives.length > 0 ? (
         <div className="space-y-3">
           {report.mappedDrives.map((drive) => (
